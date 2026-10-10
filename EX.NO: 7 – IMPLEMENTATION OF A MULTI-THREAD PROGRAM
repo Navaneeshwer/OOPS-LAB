@@ -1,126 +1,95 @@
-class SharedResource
+import java.util.*;
+
+class even implements Runnable
 {
-    private int data;
-    private boolean available = false;
+    public int x;
 
-    public synchronized void produce(int value)
+    public even(int x)
     {
-        while(available)
-        {
-            try
-            {
-                wait();
-            }
-            catch(InterruptedException e)
-            {
-                System.out.println("Thread interrupted");
-            }
-        }
-
-        data = value;
-        System.out.println("Produced: " + data);
-        available = true;
-        notify();
-    }
-
-    public synchronized void consume()
-    {
-        while(!available)
-        {
-            try
-            {
-                wait();
-            }
-            catch(InterruptedException e)
-            {
-                System.out.println("Thread interrupted");
-            }
-        }
-
-        System.out.println("Consumed: " + data);
-        available = false;
-        notify();
-    }
-}
-
-class Producer implements Runnable
-{
-    private SharedResource resource;
-
-    public Producer(SharedResource resource)
-    {
-        this.resource = resource;
+        this.x = x;
     }
 
     public void run()
     {
-        for(int i = 1; i <= 5; i++)
-        {
-            resource.produce(i);
-
-            try
-            {
-                Thread.sleep(100);
-            }
-            catch(InterruptedException e)
-            {
-                System.out.println("Thread interrupted");
-            }
-        }
+        System.out.println("New Thread " + x +
+            " is EVEN and Square of " + x + " is: " + x * x);
     }
 }
 
-class Consumer implements Runnable
+class odd implements Runnable
 {
-    private SharedResource resource;
+    public int x;
 
-    public Consumer(SharedResource resource)
+    public odd(int x)
     {
-        this.resource = resource;
+        this.x = x;
     }
 
     public void run()
     {
-        for(int i = 1; i <= 5; i++)
-        {
-            resource.consume();
+        System.out.println("New Thread " + x +
+            " is ODD and Cube of " + x + " is: " + x * x * x);
+    }
+}
 
-            try
+class A extends Thread
+{
+    public void run()
+    {
+        int num = 0;
+        Random r = new Random();
+
+        try
+        {
+            for(int i = 0; i < 5; i++)
             {
-                Thread.sleep(100);
+                num = r.nextInt(100);
+
+                System.out.println(
+                    "Main Thread and Generated Number is " + num);
+
+                if(num % 2 == 0)
+                {
+                    Thread t1 = new Thread(new even(num));
+                    t1.start();
+                }
+                else
+                {
+                    Thread t2 = new Thread(new odd(num));
+                    t2.start();
+                }
+
+                Thread.sleep(1000);
+                System.out.println(" ");
             }
-            catch(InterruptedException e)
-            {
-                System.out.println("Thread interrupted");
-            }
+        }
+        catch(Exception ex)
+        {
+            System.out.println(ex.getMessage());
         }
     }
 }
 
-public class InterThreadCommunication
+public class ThreadProgram
 {
     public static void main(String[] args)
     {
-        SharedResource resource = new SharedResource();
-
-        Thread producerThread =
-            new Thread(new Producer(resource));
-
-        Thread consumerThread =
-            new Thread(new Consumer(resource));
-
-        producerThread.start();
-        consumerThread.start();
+        A a = new A();
+        a.start();
     }
 }
 OUTPUT:
-Produced: 1
-Consumed: 1
-Produced: 2
-Consumed: 2
-Produced: 3
-Consumed: 3
-Produced: 4
-Consumed: 4
-Produced: 5
-Consumed: 5
+Main Thread and Generated Number is 10
+New Thread 10 is EVEN and Square of 10 is: 100
+
+Main Thread and Generated Number is 14
+New Thread 14 is EVEN and Square of 14 is: 196
+
+Main Thread and Generated Number is 83
+New Thread 83 is ODD and Cube of 83 is: 571787
+
+Main Thread and Generated Number is 1
+New Thread 1 is ODD and Cube of 1 is: 1
+
+Main Thread and Generated Number is 20
+New Thread 20 is EVEN and Square of 20 is: 400
